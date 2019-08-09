@@ -1,0 +1,104 @@
+/*
+Summary:
+0.Imports
+1.General layout / Responsiveness
+2.Colors
+3.Fonts
+4.Specific layout / Components
+*/
+
+/*
+0.Imports
+*/
+
+/*
+1.General layout
+*/
+
+/*
+z-index:
+    container: 50
+    overlay: 100
+    footer: 110
+*/
+body, html {
+    width: 100%;
+    background-color: #0F0C09;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 550px;
+    height: 480px;
+    margin-top: 120px;
+    margin-left: auto;
+    margin-right: auto;
+    z-index: 50;
+}
+
+.game-board {
+    width: 100%;
+    height: 100%;
+    background: #EDBC77;
+}
+
+.overlay{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+}
+.overlay img {
+    position: absolute;
+    margin: auto;
+    width: 950px;
+    left: 50%;
+    margin-left: -475px;
+    top: 0;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    right: 4px;
+    z-index: 110;
+}
+
+/*Responsiveness*/
+
+@media only screen and (max-width: 600px) {
+    .container {
+        width: 100%;
+    }
+}
+
+/*
+2.Colors
+*/
+
+/*tokens*/
+
+.c-red {
+    color: #D8A0A0;
+}
+
+.c-blue {
+    color: #CBE8F7;
+}
+
+/*
+3.Texts
+*/
+footer a{
+    color: #CBE8F7;
+    font-size: 11px;
+    text-decoration: none;
+    text-align:right;
+    float: right;
+}
+/*
+4.Specific layout / Components
+*/

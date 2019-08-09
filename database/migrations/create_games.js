@@ -1,11 +1,14 @@
 exports.up = function (knex) {
     return knex.schema.createTable('games', function (t) {
       t.increments('id').primary()
-      t.json('current_state').notNullable()
+      t.string('invite_token').notNullable()
+      t.json('game_board').notNullable()
+      t.json('players').notNullable()
+      t.integer('player_turn').notNullable()
+      t.integer('winner').nullable()
       t.integer('created_by').notNullable()
       t.string('created_at').notNullable()
       t.string('ended_at').nullable()
-      t.json('players').notNullable()
     })
   };
   
