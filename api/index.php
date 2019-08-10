@@ -55,19 +55,19 @@ $app->post('/player', function (Request $request, Response $response, array $arg
     $body = $request->getParsedBody();
     if (empty($body['name'])) {
         return $response->withJson(array(
-            "error:" => "No name defined."
+            "error" => "No name defined."
         ), 400);
     }
     $name = filter_var($body['name'], FILTER_SANITIZE_STRING);
     if (strlen($name) > 25) {
         return $response->withJson(array(
-            "error:" => "Your name should not have more than 25 characters."
+            "error" => "Your name should not have more than 25 characters."
         ), 400);
     }
     $player = createPlayer($this->database, $name);
     if ($this->database->error()[0] != "00000") {
         return $response->withJson(array(
-            "error:" => "An internal error occured."
+            "error" => "An internal error occured."
         ), 500);
     }
     return $response->withJson($player);
@@ -95,7 +95,7 @@ $app->get('/player/{playerId}', function (Request $request, Response $response, 
     $player = getPlayer($this->database, $playerId);
     if ($this->database->error()[0] != "00000") {
         return $response->withJson(array(
-            "error:" => "An internal error occured."
+            "error" => "An internal error occured."
         ), 500);
     }
     return $response->withJson($player);
@@ -110,7 +110,8 @@ function createGame($database, $playerId)
     $createGame = $database->insert('games', [
         "invite_token" => $inviteToken,
         "players" => json_encode(array([
-            $playerId => $playerToken
+            "playerId" => $playerId,
+            "playerToken" =>$playerToken
         ])),
         "player_turn" => 1,
         "game_board" => json_encode(json_decode('[{"x":1,"y":1,"disk":0},{"x":2,"y":1,"disk":0},{"x":3,"y":1,"disk":0},{"x":4,"y":1,"disk":0},{"x":5,"y":1,"disk":0},{"x":6,"y":1,"disk":0},{"x":7,"y":1,"disk":0},{"x":8,"y":1,"disk":0},{"x":1,"y":2,"disk":0},{"x":2,"y":2,"disk":0},{"x":3,"y":2,"disk":0},{"x":4,"y":2,"disk":0},{"x":5,"y":2,"disk":0},{"x":6,"y":2,"disk":0},{"x":7,"y":2,"disk":0},{"x":8,"y":2,"disk":0},{"x":1,"y":3,"disk":0},{"x":2,"y":3,"disk":0},{"x":3,"y":3,"disk":0},{"x":4,"y":3,"disk":0},{"x":5,"y":3,"disk":0},{"x":6,"y":3,"disk":0},{"x":7,"y":3,"disk":0},{"x":8,"y":3,"disk":0},{"x":1,"y":4,"disk":0},{"x":2,"y":4,"disk":0},{"x":3,"y":4,"disk":0},{"x":4,"y":4,"disk":0},{"x":5,"y":4,"disk":0},{"x":6,"y":4,"disk":0},{"x":7,"y":4,"disk":0},{"x":8,"y":4,"disk":0},{"x":1,"y":5,"disk":0},{"x":2,"y":5,"disk":0},{"x":3,"y":5,"disk":0},{"x":4,"y":5,"disk":0},{"x":5,"y":5,"disk":0},{"x":6,"y":5,"disk":0},{"x":7,"y":5,"disk":0},{"x":8,"y":5,"disk":0},{"x":1,"y":6,"disk":0},{"x":2,"y":6,"disk":0},{"x":3,"y":6,"disk":0},{"x":4,"y":6,"disk":0},{"x":5,"y":6,"disk":0},{"x":6,"y":6,"disk":0},{"x":7,"y":6,"disk":0},{"x":8,"y":6,"disk":0},{"x":1,"y":7,"disk":0},{"x":2,"y":7,"disk":0},{"x":3,"y":7,"disk":0},{"x":4,"y":7,"disk":0},{"x":5,"y":7,"disk":0},{"x":6,"y":7,"disk":0},{"x":7,"y":7,"disk":0},{"x":8,"y":7,"disk":0},{"x":1,"y":8,"disk":0},{"x":2,"y":8,"disk":0},{"x":3,"y":8,"disk":0},{"x":4,"y":8,"disk":0},{"x":5,"y":8,"disk":0},{"x":6,"y":8,"disk":0},{"x":7,"y":8,"disk":0},{"x":8,"y":8,"disk":0}]')),
@@ -127,26 +128,26 @@ $app->post('/game', function (Request $request, Response $response, array $args)
     //Validate player id format
     if (empty($playerId)) {
         return $response->withJson(array(
-            "error:" => "No player id given for the game initialization."
+            "error" => "No player id given for the game initialization."
         ), 400);
     }
     if (!is_numeric($playerId)) {
         return $response->withJson(array(
-            "error:" => "The id given isn't in a valid format."
+            "error" => "The id given isn't in a valid format."
         ), 400);
     }
     //Check if player exists
     $playerExists = getPlayer($this->database, $playerId);
     if (empty($playerExists)) {
         return $response->withJson(array(
-            "error:" => "No player with the given id exists."
+            "error" => "No player with the given id exists."
         ), 400);
     }
     //Create the game
     $game = createGame($this->database, $playerId);
     if ($this->database->error()[0] != "00000") {
         return $response->withJson(array(
-            "error:" => "An internal error occured."
+            "error" => "An internal error occured."
         ), 500);
     }
     return $response->withJson($game);
@@ -161,7 +162,7 @@ $app->get('/games', function (Request $request, Response $response, array $args)
     $games = getGames($this->database);
     if ($this->database->error()[0] != "00000") {
         return $response->withJson(array(
-            "error:" => "An internal error occured."
+            "error" => "An internal error occured."
         ), 500);
     }
     return $response->withJson($games);
@@ -178,7 +179,7 @@ $app->get('/game/{gameId}', function (Request $request, Response $response, arra
     $game = getPlayer($this->database, $gameId);
     if ($this->database->error()[0] != "00000") {
         return $response->withJson(array(
-            "error:" => "An internal error occured."
+            "error" => "An internal error occured."
         ), 500);
     }
     return $response->withJson($game);
@@ -195,7 +196,7 @@ $app->get('/game/token/{inviteToken}', function (Request $request, Response $res
     $game = getGameByInviteToken($this->database, $inviteToken);
     if ($this->database->error()[0] != "00000") {
         return $response->withJson(array(
-            "error:" => "An internal error occured."
+            "error" => "An internal error occured."
         ), 500);
     }
     return $response->withJson($game);
@@ -219,7 +220,8 @@ function addNewPlayerToGame($database, $inviteToken, $name)
     $playersData = json_decode($gameData[0]['players']);
     //Add it to the given game and assign it a token.
     $playerToken = Uuid::uuid4()->toString();
-    $playersData[] = (object) array($playerId => $playerToken);
+    $playersData[] = (object) array("playerId" => $playerId,
+    "playerToken" =>$playerToken);
     $database->update("games", [
         "players" => json_encode($playersData)
     ], [
@@ -237,14 +239,14 @@ $app->post('/games/acceptInvite', function (Request $request, Response $response
     $inviteToken = $body['inviteToken'];
     if (empty($body['name'])) {
         return $response->withJson(array(
-            "error:" => "No name defined."
+            "error" => "No name defined."
         ), 400);
     }
     $name = filter_var($body['name'], FILTER_SANITIZE_STRING);
     //Validate name length
     if (strlen($name) > 25) {
         return $response->withJson(array(
-            "error:" => "Your name should not have more than 25 characters."
+            "error" => "Your name should not have more than 25 characters."
         ), 400);
     }
     //Validate invite token
@@ -253,7 +255,7 @@ $app->post('/games/acceptInvite', function (Request $request, Response $response
     ]);
     if (empty($acceptInvite)) {
         return $response->withJson(array(
-            "error:" => "Sorry, but no game is related to this invitation token."
+            "error" => "Sorry, but no game is related to this invitation token."
         ), 400);
     }
 
@@ -261,7 +263,7 @@ $app->post('/games/acceptInvite', function (Request $request, Response $response
     $addNewPlayerToGame = addNewPlayerToGame($this->database, $inviteToken, $name);
     if ($this->database->error()[0] != "00000") {
         return $response->withJson(array(
-            "error:" => "An internal error occured."
+            "error" => "An internal error occured."
         ), 500);
     }
     
@@ -274,7 +276,7 @@ $app->run();
 Common errors solving:
 
 Slim message: Message: Identifier "" is not defined.
-Php error: Undefined variable: database
+Php error Undefined variable: database
 Problem: $this->$database->select
 Solution: $this->database->select
 */

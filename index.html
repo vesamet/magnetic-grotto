@@ -4,34 +4,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>title</title>
-    <meta name="author" content="Magnetic Grotto">
+    <title>Magnetic Grotto</title>
+    <meta name="author" content="Gwenael Guyot">
     <meta name="description" content="Magnetic Grotto is a delectable Connect Four game with a magnetic twist !">
     <meta name="keywords" content="Magnetic, Grotto, connect, four">
     <link rel="stylesheet" href="assets/css/styles.css" type="text/css">
+    <link rel="stylesheet" href="node_modules/animate.css/animate.min.css" type="text/css">
 </head>
 
 <body>
     <div class="container">
-        <div class="ui game-board">
-
+        <div class="ui game-board d-none">
         </div>
-        <div class="ui game-creation-form">
-
+        <div class="ui game-creation">
+            <h1 class="title">Magnetic Grotto</h1>
+            <h3 class="subtitle">A delectable 2 players <i>Connect Four</i> game<br> with a magnetic twist !</h3>
+            <p>Enter your name:<br><input class="game-creation-name-input" type="text"></p>
+            <p>
+                <a class="button btn-create-game">New Game</a>
+                <a class="button btn-show-game-invite">Join</a>
+                <a class="button btn-show-tutorial">Tutorial</a>
+            </p>
         </div>
-        <div class="ui game-invite-form">
-
+        <div class="ui game-invite d-none">
+            <h1 class="title">Magnetic Grotto</h1>
+            <p>Game invite token:<br><input class="game-invite-gametoken-input" type="text"></p>
+            <p>Enter your name:<br><input class="game-invite-name-input" type="text"></p>
+            <p>
+                <a class="button btn-show-tutorial">Tutorial</a>
+                <a class="button btn-accept-invite"><strong>Play</strong></a>
+                <a class="button btn-show-game-creation">Back</a>
+            </p>
+        </div>
+        <div class="ui tutorial d-none">
+            <h1 class="title">Magnetic Grotto</h1>
+            <p>
+                <a class="button btn-show-game-creation">Back</a>
+            </p>
         </div>
     </div>
 
     <div class="overlay"><img src="assets/img/game-bg.svg" alt="Background image of a grotto entrance."></div>
 
-    <script src="node_modules/jquery/dist/jquery.min.js" type="text/javascript"></script>
-    <script src="assets/js/script.js" type="text/javascript"></script>
+    <div class="players-info"><span class="player1-info"></span><span class="player2-info"></span></div>
+    <div class="notification d-none"></div>
+
+
     <footer>
         <a href="https://leguyot.com">Created by LeGuyot.com</a><br>
         <a href="https://www.vecteezy.com">Vector illustration credit: Vecteezy.com</a>
     </footer>
+
+    <script src="node_modules/jquery/dist/jquery.min.js" type="text/javascript"></script>
+    <script src="assets/js/script.js" type="text/javascript"></script>
 </body>
 
 </html>
