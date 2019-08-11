@@ -23,8 +23,10 @@ Summary:
 
 /*
 z-index:
+    particle-overlay: 40
     container: 50
-    overlay: 100
+    grotto-overlay: 100
+    player-info: 105
     notification: 110
     footer: 110
 */
@@ -37,26 +39,47 @@ body, html {
 }
 
 .container {
+    position: relative;
     width: 550px;
     height: 480px;
-    margin-top: 110px;
+    margin-top: 116px;
     margin-left: auto;
     margin-right: auto;
+    background: transparent;
     z-index: 50;
+    overflow-x: hidden;
 }
 
-.overlay {
+#particles-overlay {
+    position: absolute;
+    margin: auto;
+    width: 550px;
+    height: 480px;
+    top: 110px;
+    left: 50%;
+    margin-left: -275px;
+    overflow: hidden;
+    background: #EB5757;
+    /* fallback for old browsers */
+    background: -webkit-linear-gradient(to top, #000000, #EB5757);
+    /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to top, #000000, #EB5757);
+    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    z-index: 40;
+}
+
+.grotto-overlay {
     position: absolute;
     pointer-events: none;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 100;
     overflow: hidden;
+    z-index: 90;
 }
 
-.overlay img {
+.grotto-overlay img {
     position: absolute;
     margin: auto;
     width: 950px;
@@ -82,7 +105,7 @@ footer {
     .container {
         width: 100% !important;
     }
-    .notification {
+    .notification, .alert, .players-info {
         width: 100%!important;
         margin-left: 0px !important;
         left: 0 !important;
@@ -91,7 +114,7 @@ footer {
     .title {
         padding-top: 40px !important;
     }
-    .disk {
+    .disc {
         width: 27px !important;
         height: 27px !important;
     }
@@ -109,19 +132,16 @@ footer {
 .c-bg-red {
     background-color: #D8A0A0;
 }
-
 .c-bg-blue {
     background-color: #CBE8F7;
-}
-
-.c-bg-bg-wellow, .container {
-    background: rgb(179, 132, 66);
 }
 
 .c-bg-empty {
     background-color: gray;
 }
-
+.c-dark-red {
+    color: #EB5757;
+}
 /*
 3.Texts
 */
@@ -153,6 +173,17 @@ footer a {
     line-height: 1;
 }
 
+a {
+    font-family: 'Grenze', serif;
+    color: #EB5757;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #EB5757;
+    text-decoration: underline;
+}
+
 p, input, .player1-info, .player2-info {
     font-family: 'Grenze', serif;
     text-align: center;
@@ -164,6 +195,26 @@ input {
     font-weight: bold;
 }
 
+p, .notification, .button, .player1-info, .player2-info, .title, .subtitle, .disc {
+    /*Prevent text select*/
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+/*text selection color*/
+
+::selection {
+    background: #ffb7b7;
+    /* WebKit/Blink Browsers */
+}
+
+::-moz-selection {
+    background: #ffb7b7;
+    /* Gecko Browsers */
+}
+
 /*
 4.Specific layout / Components
 */
@@ -172,14 +223,14 @@ input {
 
 .game-board {
     padding-top: 10px;
-    width: 400px;
+    width: 430px;
     margin: auto;
 }
 
-.disk {
+.disc {
     display: inline-block;
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     text-decoration: none;
     margin: 4px;
 }
@@ -219,17 +270,16 @@ input {
     border-image-outset: 10px;
     border-image-repeat: stretch stretch;
     border-image-source: url("../img/borders.png");
-    
 }
 
 .button:hover {
-    font-weight: bold;
     cursor: pointer;
+    text-decoration: none;
 }
 
 /*Notifications box*/
 
-.notification {
+.notification, .alert {
     position: fixed;
     margin: auto;
     width: 380px;
@@ -241,6 +291,7 @@ input {
     text-align: center;
     z-index: 110;
     background-color: #1c2418;
+    font-family: 'Grenze', serif;
     border-width: 50px;
     border-image-slice: 27 27 27 27;
     border-image-width: 20px 20px 20px 20px;
@@ -249,24 +300,41 @@ input {
     border-image-source: url("../img/borders-green.png");
 }
 
+/*Alert box*/
+.alert {
+    font-size: 20px;
+    bottom: auto;
+    top: 30%;
+    word-wrap: break-word;
+}
+.close-alert {
+    text-decoration: none;
+}
+.close-alert:hover {
+    text-decoration: underline;
+}
+
+
 /* Players info*/
 
 .players-info {
     position: fixed;
     margin: auto;
-    width: 380px;
-    padding: 20px;
+    width: 480px;
     left: 50%;
-    margin-left: -190px;
-    bottom: 20px;
+    margin-left: -240px;
+    bottom: 80px;
     color: white;
     pointer-events: none;
+    z-index:105;
 }
 
 .player1-info {
     float: left;
+    text-align: left;
 }
 
 .player2-info {
     float: right;
+    text-align: right;
 }
