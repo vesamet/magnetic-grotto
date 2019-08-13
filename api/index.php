@@ -8,7 +8,7 @@ use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
 
 require '../vendor/autoload.php';
 
-//Init the API
+$config['debug'] = true;
 $config['displayErrorDetails'] = true;
 $config['addContentLengthHeader'] = false;
 $config['errorHandler'] = function ($config) {
@@ -47,7 +47,7 @@ function createPlayer($database, $name)
     $createPlayer = $database->insert('players', [
         "id" => null,
         "name" => strtolower(trim($name)),
-        "created_at" => strval(time())
+        "created_at" => Medoo::raw('UNIX_TIMESTAMP()')
     ]);
     return $database->id();
 }
@@ -118,7 +118,7 @@ function createGame($database, $playerId)
         "is_full" => 0,
         "game_board" => json_encode(json_decode('[{"x":1,"y":1,"disc":0},{"x":2,"y":1,"disc":0},{"x":3,"y":1,"disc":0},{"x":4,"y":1,"disc":0},{"x":5,"y":1,"disc":0},{"x":6,"y":1,"disc":0},{"x":7,"y":1,"disc":0},{"x":8,"y":1,"disc":0},{"x":1,"y":2,"disc":0},{"x":2,"y":2,"disc":0},{"x":3,"y":2,"disc":0},{"x":4,"y":2,"disc":0},{"x":5,"y":2,"disc":0},{"x":6,"y":2,"disc":0},{"x":7,"y":2,"disc":0},{"x":8,"y":2,"disc":0},{"x":1,"y":3,"disc":0},{"x":2,"y":3,"disc":0},{"x":3,"y":3,"disc":0},{"x":4,"y":3,"disc":0},{"x":5,"y":3,"disc":0},{"x":6,"y":3,"disc":0},{"x":7,"y":3,"disc":0},{"x":8,"y":3,"disc":0},{"x":1,"y":4,"disc":0},{"x":2,"y":4,"disc":0},{"x":3,"y":4,"disc":0},{"x":4,"y":4,"disc":0},{"x":5,"y":4,"disc":0},{"x":6,"y":4,"disc":0},{"x":7,"y":4,"disc":0},{"x":8,"y":4,"disc":0},{"x":1,"y":5,"disc":0},{"x":2,"y":5,"disc":0},{"x":3,"y":5,"disc":0},{"x":4,"y":5,"disc":0},{"x":5,"y":5,"disc":0},{"x":6,"y":5,"disc":0},{"x":7,"y":5,"disc":0},{"x":8,"y":5,"disc":0},{"x":1,"y":6,"disc":0},{"x":2,"y":6,"disc":0},{"x":3,"y":6,"disc":0},{"x":4,"y":6,"disc":0},{"x":5,"y":6,"disc":0},{"x":6,"y":6,"disc":0},{"x":7,"y":6,"disc":0},{"x":8,"y":6,"disc":0},{"x":1,"y":7,"disc":0},{"x":2,"y":7,"disc":0},{"x":3,"y":7,"disc":0},{"x":4,"y":7,"disc":0},{"x":5,"y":7,"disc":0},{"x":6,"y":7,"disc":0},{"x":7,"y":7,"disc":0},{"x":8,"y":7,"disc":0},{"x":1,"y":8,"disc":0},{"x":2,"y":8,"disc":0},{"x":3,"y":8,"disc":0},{"x":4,"y":8,"disc":0},{"x":5,"y":8,"disc":0},{"x":6,"y":8,"disc":0},{"x":7,"y":8,"disc":0},{"x":8,"y":8,"disc":0}]')),
         "created_by" => $playerId,
-        "created_at" => strval(time())
+        "created_at" => Medoo::raw('UNIX_TIMESTAMP()')
     ]);
     return [
         "playerToken" => $playerToken,
@@ -315,7 +315,7 @@ function getGameState($database, $inviteToken, $playerToken)
         if (empty($playerName)) {
             $playerName = 'No name';
         } else {
-            $playerName = [ $value['playerId'] => $playerName[0]['name']];
+            $playerName = [$value['playerId'] => $playerName[0]['name']];
         }
         //add player names to the game state
         array_push($gameData[0]['playerNames'], $playerName);
@@ -327,6 +327,7 @@ function getGameState($database, $inviteToken, $playerToken)
         return $gameData[0];
     }
 }
+
 $app->post('/game/getState', function (Request $request, Response $response, array $args) {
     $body = $request->getParsedBody();
     //Validate playerToken
@@ -376,6 +377,66 @@ $app->post('/game/getState', function (Request $request, Response $response, arr
     }
 });
 
+//👉 Resign
+$app->post('/game/resign', function (Request $request, Response $response, array $args) {
+    $body = $request->getParsedBody();
+    //Validate playerToken
+    if (empty($body['playerToken'])) {
+        return $response->withJson(array(
+            "error" => "No player token given."
+        ), 400);
+    }
+    $playerToken = $body['playerToken'];
+    //Validate invite token
+    if (empty($body['inviteToken'])) {
+        return $response->withJson(array(
+            "error" => "No invite token given."
+        ), 400);
+    }
+    $inviteToken = $body['inviteToken'];
+    //Validate invite token
+    $gameState = $this->database->select('games', ["invite_token", "is_full", "winner", "players"], [
+        "invite_token" => $inviteToken
+    ]);
+    if (empty($gameState)) {
+        return $response->withJson(array(
+            "error" => "Sorry, but no game is related to this invitation token."
+        ), 400);
+    }
+
+    //Validate if the player is in the game
+    $playersData = json_decode($gameState[0]['players']);
+    $isValid = 0;
+    $playerId = 0;
+    foreach ($playersData as $key => $player) {
+        if ($player->playerToken == $playerToken) {
+            $isValid = 1;
+            $playerRole = $player->playerRole;
+        }
+    }
+    if ($isValid == 0) {
+        return $response->withJson(array(
+            "error" => "Sorry, but you are not an active player of this game."
+        ), 400);
+    }
+
+    //change the resign status of the game
+    $this->database->update("games", [
+        "player_resigned" => $playerRole
+    ], [
+        "invite_token" => $inviteToken
+    ]);
+
+    if ($this->database->error()[0] != "00000") {
+        return $response->withJson(array(
+            "error" => "An internal error occured."
+        ), 500);
+    } else {
+        return $response->withJson('Successfully resigned.');
+    }
+});
+
+
 //🌕 MOVES
 //👉 read
 function getGameMoves($database, $gameId)
@@ -419,8 +480,292 @@ $app->post('/moves/getMoves', function (Request $request, Response $response, ar
     }
 });
 
+//👉 Perform move
+$app->post('/move', function (Request $request, Response $response, array $args) {
+    $body = $request->getParsedBody();
+    //Validate playerToken
+    if (empty($body['playerToken'])) {
+        return $response->withJson(array(
+            "error" => "No player token given."
+        ), 400);
+    }
+    $playerToken = $body['playerToken'];
+    //Validate invite token
+    if (empty($body['inviteToken'])) {
+        return $response->withJson(array(
+            "error" => "No invite token given."
+        ), 400);
+    }
+    $inviteToken = $body['inviteToken'];
+    //Validate boardRow
+    if (empty($body['boardRow'])) {
+        return $response->withJson(array(
+            "error" => "No row given."
+        ), 400);
+    }
+    if (
+        $body['boardRow'] > 8 ||
+        $body['boardRow'] < 1
+    ) {
+        return $response->withJson(array(
+            "error" => "The given row is invalid."
+        ), 400);
+    }
+    $boardRow = $body['boardRow'];
+    //Validate boardCol
+    if (empty($body['boardCol'])) {
+        return $response->withJson(array(
+            "error" => "No collumn given."
+        ), 400);
+    }
+    if (
+        $body['boardCol'] != "left" &&
+        $body['boardCol'] != "right"
+    ) {
+        return $response->withJson(array(
+            "error" => "The given collumn is invalid."
+        ), 400);
+    }
+    $boardCol = $body['boardCol'];
+    //Validate invite token
+    $gameState = $this->database->select('games', "*", [
+        "invite_token" => $inviteToken
+    ]);
+    if (empty($gameState)) {
+        return $response->withJson(array(
+            "error" => "Sorry, but no game is related to this invitation token."
+        ), 400);
+    }
+
+    //Validate if the player is in the game
+    $playersData = json_decode($gameState[0]['players']);
+    $isValid = 0;
+    $playerId = 0;
+    $playerRole = 0;
+    foreach ($playersData as $key => $player) {
+        if ($player->playerToken == $playerToken) {
+            $isValid = 1;
+            $playerRole = $player->playerRole;
+            $playerId = $player->playerId;
+        }
+    }
+    if ($isValid == 0) {
+        return $response->withJson(array(
+            "error" => "Sorry, but you are not an active player of this game."
+        ), 400);
+    }
+    //Validate if it's the turn of the player to play
+    if ($gameState[0]['player_turn'] != $playerRole) {
+        return $response->withJson(array(
+            "error" => "Sorry, but it's not your turn yet."
+        ), 400);
+    }
+
+    //Validate if the game is already won
+    if (!empty($gameState[0]['winner'])) {
+        return $response->withJson(array(
+            "error" => "Sorry, but this game already has a winner."
+        ), 400);
+    }
+
+    /*
+    Validate move
+    */
+    function getDisc($gameBoard, $coordx, $coordy)
+    {
+        foreach ($gameBoard as $key => $cell) {
+            if (
+                $cell['x'] == $coordx &&
+                $cell['y'] == $coordy
+            ) {
+                return $cell['disc'];
+            }
+        }
+    }
+    $gameBoard = json_decode($gameState[0]['game_board'], true);
+    // Define where the disc would land
+    $coordy = $boardRow;
+    $coordx = 0;
+    if ($boardCol == "left") {
+        for ($colCount = 8; $colCount >= 1; $colCount--) {
+            if (getDisc($gameBoard, $colCount, $coordy) == 0) {
+                $coordx = $colCount;
+                break;
+            }
+        }
+    } elseif ($boardCol == "right") {
+        for ($colCount = 1; $colCount <= 8; $colCount++) {
+            if (getDisc($gameBoard, $colCount, $coordy) == 0) {
+                $coordx = $colCount;
+                break;
+            }
+        }
+    }
+    if ($coordx == 0) {
+        //There is no empty cell on the row
+        return $response->withJson(array(
+            "error" => "The row has no space for more disc."
+        ), 500);
+    }
+    //Insert move in db
+    $this->database->insert('moves', [
+        "game_id" => $gameState[0]['id'],
+        "played_by" => $playerId,
+        "performed_at" => Medoo::raw('UNIX_TIMESTAMP()'),
+        "coord_x" => $coordx,
+        "coord_y" => $coordy,
+    ]);
+    if ($this->database->error()[0] != "00000") {
+        return $response->withJson(array(
+            "error" => "An internal error occured."
+        ), 500);
+    }
+    //update game board (the new disc and player turn)
+    $updatedGameBoard = $gameBoard;
+    foreach ($updatedGameBoard as $key => &$cell) {
+        if (
+            $cell['x'] == $coordx &&
+            $cell['y'] == $coordy
+        ) {
+            $cell['disc'] = $playerRole;
+        }
+    }
+    $updatedPlayerTurn = 0;
+    if ($gameState[0]['player_turn'] == 1) {
+        $updatedPlayerTurn = 2;
+    } else {
+        $updatedPlayerTurn = 1;
+    }
+
+    /*
+    Winner validation check
+    */
+    $winner = null;
+    //Horizontal check
+    //count towards the left of current disc
+    $discCount = 0;
+    for ($colCount = $coordx; $colCount >= 1; $colCount--) {
+        if (getDisc($updatedGameBoard, $colCount, $coordy) != $playerRole) {
+            break;
+        } elseif (getDisc($updatedGameBoard, $colCount, $coordy) == $playerRole) {
+            $discCount++;
+        }
+    }
+    //count towards the right of current disc
+    for ($colCount = $coordx; $colCount <= 8; $colCount++) {
+        if (getDisc($updatedGameBoard, $colCount, $coordy) != $playerRole) {
+            break;
+        } elseif (getDisc($updatedGameBoard, $colCount, $coordy) == $playerRole) {
+            $discCount++;
+        }
+    }
+    if ($discCount > 5) {
+        $winner = $playerRole;
+    }
+
+    //Vertical check
+    //count towards the bottom of current disc
+    $discCount = 0;
+    for ($rowCount = $coordy; $rowCount >= 1; $rowCount--) {
+        if (getDisc($updatedGameBoard, $coordx, $rowCount) != $playerRole) {
+            break;
+        } elseif (getDisc($updatedGameBoard, $coordx, $rowCount) == $playerRole) {
+            $discCount++;
+        }
+    }
+    //count towards the top of current disc
+    for ($rowCount = $coordy; $rowCount <= 8; $rowCount++) {
+        if (getDisc($updatedGameBoard, $coordx, $rowCount) != $playerRole) {
+            break;
+        } elseif (getDisc($updatedGameBoard, $coordx, $rowCount) == $playerRole) {
+            $discCount++;
+        }
+    }
+    if ($discCount > 5) {
+        $winner = $playerRole;
+    }
+
+
+    // Diagonal check from bottom right to top left
+    // count towards the bottom right of current disc
+    $discCount = 0;
+    $debugArray = [];
+    $checkCoordx = $coordx;
+    for ($rowCount = $coordy; $rowCount >= -1; $rowCount--) {
+        if (getDisc($updatedGameBoard, $checkCoordx - 1, $rowCount - 1) != $playerRole) {
+            break;
+        } elseif (getDisc($updatedGameBoard, $checkCoordx - 1, $rowCount - 1) == $playerRole) {
+            $discCount++;
+            $debugArray[] = ["direction" => "UP", "x" => $checkCoordx - 1, "y" => $rowCount - 1];
+        }
+        $checkCoordx--;
+    }
+    //count towards the top left of current disc
+    $checkCoordx = $coordx;
+    for ($rowCount = $coordy; $rowCount <= 9; $rowCount++) {
+        if (getDisc($updatedGameBoard, $checkCoordx + 1, $rowCount + 1) != $playerRole) {
+            break;
+        } elseif (getDisc($updatedGameBoard, $checkCoordx + 1, $rowCount + 1) == $playerRole) {
+            $discCount++;
+            $debugArray[] = ["direction" => "DOWN", "x" => $checkCoordx + 1, "y" => $rowCount + 1];
+        }
+        $checkCoordx++;
+    }
+    if ($discCount > 3) {
+        $winner = $playerRole;
+    }
+
+    // Diagonal check from bottom left to top right
+    // count towards the bottom left of current disc
+    $discCount = 0;
+    $debugArray = [];
+    $checkCoordx = $coordx;
+    for ($rowCount = $coordy; $rowCount >= -1; $rowCount--) {
+        if (getDisc($updatedGameBoard, $checkCoordx + 1, $rowCount - 1) != $playerRole) {
+            break;
+        } elseif (getDisc($updatedGameBoard, $checkCoordx + 1, $rowCount - 1) == $playerRole) {
+            $discCount++;
+            $debugArray[] = ["direction" => "UP", "x" => $checkCoordx + 1, "y" => $rowCount - 1];
+        }
+        $checkCoordx++;
+    }
+    //count towards the top right of current disc
+    $checkCoordx = $coordx;
+    for ($rowCount = $coordy; $rowCount <= 9; $rowCount++) {
+        if (getDisc($updatedGameBoard, $checkCoordx - 1, $rowCount + 1) != $playerRole) {
+            break;
+        } elseif (getDisc($updatedGameBoard, $checkCoordx - 1, $rowCount + 1) == $playerRole) {
+            $discCount++;
+            $debugArray[] = ["direction" => "DOWN", "x" => $checkCoordx - 1, "y" => $rowCount + 1];
+        }
+        $checkCoordx--;
+    }
+    if ($discCount > 3) {
+        $winner = $playerRole;
+    }
+
+    //insert updated gameboard in database
+    $this->database->update("games", [
+        "game_board" => json_encode($updatedGameBoard),
+        //"player_turn" => $updatedPlayerTurn,
+        "player_turn" => $updatedPlayerTurn,
+        "winner" => $winner
+    ], [
+        "invite_token" => $inviteToken
+    ]);
+    if ($this->database->error()[0] != "00000") {
+        return $response->withJson(array(
+            "error" => "An internal error occured."
+        ), 500);
+    } else {
+        return $response->withJson(['coordx' => $coordx, 'coordy' => $coordy, 'gb' => json_encode($debugArray)]);
+    }
+});
+
 //Run the API
 $app->run();
+
+
 
 
 /*

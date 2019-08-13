@@ -32,14 +32,16 @@
             <p>Enter your name:<br><input class="game-invite-name-input" type="text"></p>
             <p class="animated bounceInRight">
                 <a class="button btn-show-tutorial">Tutorial</a>
-                <a class="button btn-accept-invite"><strong>Play</strong></a>
+                <a class="button btn-accept-invite"><strong><i class="fas fa-coins"></i> Play <i class="fas fa-coins"></i></strong></a>
                 <a class="button btn-show-game-creation">Back</a>
             </p>
         </div>
         <div class="ui tutorial d-none">
             <h1 class="title animated bounce">Magnetic Grotto</h1>
             <p class="animated bounceInLeft">
-                Coming soon.
+                The game is played just like Connect Four, but instead you can place discs horizontaly on <strong>both</strong>
+                side of the board. If you place one on the left, for example, it will slide all the way to the right, as if it was magnetically attracted.<br>
+                
             </p>
             <p class="animated bounceInRight"><a class="button btn-show-game-creation">Back</a></p>
         </div>
@@ -49,15 +51,24 @@
 
     <div class="grotto-overlay"><img src="assets/img/game-bg.svg" alt="Background image of a grotto entrance."></div>
 
-    <div class="players-info no-select d-none"><span class="player1-info">dfdfdfdf</span><span class="player2-info">dfdfdfdf</span></div>
+    <div class="players-info no-select d-none">
+        <span class="player1-info c-blue"></span>
+        <span class="player2-info c-dark-red"></span>
+    </div>
     <div class="notification no-select d-none"></div>
     <div class="alert no-select d-none"></div>
+    <div class="game-menu">
+        <a class="button btn-resign">Exit</a>
+    </div>
 
     <footer>
         <a href="https://leguyot.com">Created by LeGuyot.com</a><br>
         <a href="https://www.vecteezy.com">Some Vector illustrations credit goes to: Vecteezy.com</a>
     </footer>
 
+    <audio id="coin-sound" src="assets/sound/whip.wav"></audio>
+    <audio id="win-sound" src="assets/sound/win-sound.wav"></audio>
+    <audio id="ambient-sound" volume="0.1" loop src="assets/sound/ambient-sound.wav"></audio>
     <script src="node_modules/jquery/dist/jquery.min.js" type="text/javascript"></script>
     <script src="node_modules/particles.js/particles.js" type="text/javascript"></script>
     <script src="assets/js/script.js" type="text/javascript"></script>
