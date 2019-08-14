@@ -633,7 +633,8 @@ $app->post('/move', function (Request $request, Response $response, array $args)
     $updatedPlayerTurn = 0;
     if ($gameState[0]['player_turn'] == 1) {
         $updatedPlayerTurn = 2;
-    } else {
+    }
+    if ($gameState[0]['player_turn'] == 2) {
         $updatedPlayerTurn = 1;
     }
 
