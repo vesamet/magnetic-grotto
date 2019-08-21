@@ -19,7 +19,6 @@ document.getElementById('ambient-sound').play();
 /*Redirect to Game board if the playerId and gameBoard as
 already been defined.*/
 if (localStorage.getItem("gameToken") !== null) {
-    getGameBoardState();
     show('.game-board');
 }
 
@@ -281,7 +280,7 @@ function getGameBoardState() {
                         default:
                             discType = 'disc-empty';
                     }
-                    discType = 'assets/img/' + discType;
+                    discType = 'assets/img/' + discType + '.svg';
                     var previousDiscType = $('.disc[coordx="' + cell.x + '"][coordy="' + cell.y + '"]').attr('src');
 
                     //change it's disc type
